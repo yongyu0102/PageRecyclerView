@@ -21,6 +21,10 @@
   PagingScrollHelper scrollHelper = new PagingScrollHelper();
   scrollHelper.setUpRecycleView(recyclerView);
 ```
+参考文章：
+
+[一行代码让RecyclerView变身ViewPager](http://blog.csdn.net/qq_22706515/article/details/53173162)
+
 **Note**
 
 由于使用了 RecyclerView 的 OnFlingListener，所以 RecycleView 的版本必须要 recyclerview-v7:25.0.0 以上。
