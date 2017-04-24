@@ -34,6 +34,10 @@ public class PagingScrollHelper {
     private int firstItemPosition = -2;
     //总 itemView 数量
     private int totalNum;
+    //滑动至耨一页
+    private int pageNum = -1;
+    //一次滚动 n 页
+    private int indexPage;
 
     private enum ORIENTATION {
         HORIZONTAL, VERTICAL, NULL
@@ -92,15 +96,15 @@ public class PagingScrollHelper {
             if (mOrientation == ORIENTATION.VERTICAL) {
                 //开始滚动位置，当前开始执行 scrollBy 位置
                 startPoint = offsetY;
-                if (velocityY < 0) {
+                if(velocityY==Integer.MAX_VALUE){
+                    page +=indexPage;
+                }else if (velocityY < 0) {
                     page--;
                 } else if (velocityY > 0) {
                     page++;
                 } else if (pageNum != -1) {
-                    if (lastItemPosition + 1 == totalNum) {
-                        mRecyclerView.scrollToPosition(0);
-                    }
-                    page = pageNum - 1;
+                    startPoint=0;
+                    page = pageNum-1;
                 }
                 //更具不同的速度判断需要滚动的方向
                 //一次滚动一个 mRecyclerView 高度
@@ -108,15 +112,15 @@ public class PagingScrollHelper {
 
             } else {
                 startPoint = offsetX;
-                if (velocityX < 0) {
+                if(velocityX==Integer.MAX_VALUE){
+                    page +=indexPage;
+                }else if (velocityX < 0) {
                     page--;
                 } else if (velocityX > 0) {
                     page++;
                 } else if (pageNum != -1) {
-                    if (lastItemPosition + 1 == totalNum) {
-                        mRecyclerView.scrollToPosition(0);
-                    }
-                    page = pageNum - 1;
+                    startPoint=0;
+                    page = pageNum-1;
                 }
                 endPoint = page * mRecyclerView.getWidth();
 
@@ -149,6 +153,8 @@ public class PagingScrollHelper {
                         if (null != mOnPageChangeListener) {
                             mOnPageChangeListener.onPageChange(getPageIndex());
                         }
+                        startY = offsetY;
+                        startX = offsetX;
                         //滚动完成，进行判断是否滚到头了或者滚到尾部了
                         RecyclerView.LayoutManager layoutManager = mRecyclerView.getLayoutManager();
                         //判断是当前layoutManager是否为LinearLayoutManager
@@ -222,15 +228,8 @@ public class PagingScrollHelper {
 
         @Override
         public boolean onTouch(View v, MotionEvent event) {
-            //手指按下的时候记录开始滚动的坐标
-            if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                //手指按下的开始坐标
-                startY = offsetY;
-                startX = offsetX;
-            }
             return false;
         }
-
     }
 
     //获取当前滚动的页数
@@ -264,11 +263,16 @@ public class PagingScrollHelper {
         void onPageChange(int index);
     }
 
-    private int pageNum = -1;
-
     public void setPageNum(int page) {
+        mRecyclerView.scrollToPosition(0);
+        updateLayoutManger();
         this.pageNum = page;
         mOnFlingListener.onFling(0, 0);
+    }
+
+    public void setIndexPage(int indexPage){
+        this.indexPage=indexPage;
+        mOnFlingListener.onFling(Integer.MAX_VALUE,Integer.MAX_VALUE);
     }
 
 }

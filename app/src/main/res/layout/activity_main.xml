@@ -45,37 +45,57 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-        <!--<TextView-->
-            <!--android:layout_weight="1"-->
-            <!--android:id="@+id/tv_title"-->
-            <!--android:layout_width="0dp"-->
-            <!--android:layout_height="50dp"-->
-            <!--android:layout_alignParentRight="true"-->
-            <!--android:layout_centerInParent="true"-->
-            <!--android:gravity="center"-->
-            <!--android:text="第1页" />-->
-        <TextView
+        <Button
             android:layout_weight="1"
-            android:id="@+id/tv_page"
+            android:id="@+id/btn_scroll_by"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerInParent="true"
+            android:gravity="center"
+            android:text="SCROLLBY" />
+        <Button
+            android:layout_weight="1"
+            android:id="@+id/btn_scroll_to"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerInParent="true"
+            android:gravity="center"
+            android:text="SCROLLTO" />
+        <Button
+            android:id="@+id/btn_page_to"
+            android:text="PAGETO"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <Button
+            android:layout_marginLeft="20dp"
+            android:id="@+id/btn_page_add"
+            android:text="PAGE_AAD"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <Button
+            android:layout_weight="1"
+            android:id="@+id/btn_page_start"
             android:layout_width="0dp"
             android:layout_height="50dp"
             android:layout_alignParentRight="true"
             android:layout_centerInParent="true"
             android:gravity="center"
             android:text="开始翻页" />
-        <Button
-            android:id="@+id/btn_turn_page"
-            android:text="翻页至"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+
         <EditText
             android:id="@+id/et_page_num"
             android:hint="xxxxxxxxxx"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
     </LinearLayout>
-
-
 
     <android.support.v7.widget.RecyclerView
         android:layout_marginBottom="50dp"

@@ -1,9 +1,13 @@
 package com.pengzhang;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -16,10 +20,13 @@ import com.pengzhang.view.HorizontalPageLayoutManager;
 import com.pengzhang.view.PagingItemDecoration;
 import com.pengzhang.helper.PagingScrollHelper;
 
-public class MainActivity extends AppCompatActivity implements PagingScrollHelper.onPageChangeListener {
+public class MainActivity extends AppCompatActivity  implements View.OnClickListener {
     private RecyclerView recyclerView;
-    private TextView tvPage;
-    private Button btnTurnPage;
+    private Button btnScrollBy;
+    private Button btnScrollTo;
+    private Button btnPageTo;
+    private Button btnPageAdd;
+    private Button btnPageStart;
     private EditText etPageNum;
     private PagingScrollHelper scrollHelper = new PagingScrollHelper();
     private RadioGroup radioGroup;
@@ -30,6 +37,10 @@ public class MainActivity extends AppCompatActivity implements PagingScrollHelpe
     private DividerItemDecoration hDividerItemDecoration = null;
     private DividerItemDecoration vDividerItemDecoration = null;
     private PagingItemDecoration pagingItemDecoration = null;
+    private ValueAnimator mAnimator = null;
+    private float lastFraction;
+    private boolean isPageModel = false;
+    private int scrollBy;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,14 +55,18 @@ public class MainActivity extends AppCompatActivity implements PagingScrollHelpe
 
     private void findView() {
         radioGroup = (RadioGroup) findViewById(R.id.rg_layout);
-        tvPage = (TextView) findViewById(R.id.tv_page);
-        btnTurnPage = (Button) findViewById(R.id.btn_turn_page);
-        etPageNum = (EditText) findViewById(R.id.et_page_num);
         recyclerView = (RecyclerView) findViewById(R.id.recyclerview);
+
+        etPageNum = (EditText) findViewById(R.id.et_page_num);
+        btnPageStart = (Button) findViewById(R.id.btn_page_start);
+        btnScrollBy = (Button) findViewById(R.id.btn_scroll_by);
+        btnScrollTo = (Button) findViewById(R.id.btn_scroll_to);
+        btnPageTo = (Button) findViewById(R.id.btn_page_to);
+        btnPageAdd = (Button) findViewById(R.id.btn_page_add);
     }
 
     private void init() {
-        MyAdapter  myAdapter = new MyAdapter();
+        MyAdapter myAdapter = new MyAdapter();
         recyclerView.setAdapter(myAdapter);
 
         hLinearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
@@ -66,20 +81,11 @@ public class MainActivity extends AppCompatActivity implements PagingScrollHelpe
     }
 
     private void initListener() {
-        scrollHelper.setOnPageChangeListener(this);
-        tvPage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                scrollHelper.setUpRecycleView(recyclerView);
-                scrollHelper.updateLayoutManger();
-            }
-        });
-        btnTurnPage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                scrollHelper.setPageNum(Integer.valueOf(etPageNum.getText().toString().trim()));
-            }
-        });
+        btnPageStart.setOnClickListener(this);
+        btnPageTo.setOnClickListener(this);
+        btnPageAdd.setOnClickListener(this);
+        btnScrollBy.setOnClickListener(this);
+        btnScrollTo.setOnClickListener(this);
         radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
@@ -114,8 +120,93 @@ public class MainActivity extends AppCompatActivity implements PagingScrollHelpe
 
 
     }
-    @Override
-    public void onPageChange(int index) {
 
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.btn_page_start:
+                scrollHelper.setUpRecycleView(recyclerView);
+                isPageModel = true;
+                break;
+            case R.id.btn_page_to:
+                setPageTo();
+                break;
+            case R.id.btn_page_add :
+                pageAdd();
+                break;
+            case R.id.btn_scroll_by :
+                scrollBy();
+                break;
+            case R.id.btn_scroll_to :
+                scrollTo();
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void setPageTo() {
+        if (!isPageModel) return;
+        String num = TextUtils.isEmpty(etPageNum.getText().toString().trim()) ? "0" : etPageNum.getText().toString().trim();
+        scrollHelper.setPageNum(Integer.valueOf(num));
+    }
+
+    private void pageAdd() {
+        if(!isPageModel)return;
+        String num= TextUtils.isEmpty(etPageNum.getText().toString().trim()) ? "0" : etPageNum.getText().toString().trim();
+        int index=Integer.valueOf(num);
+        scrollHelper.setIndexPage(index);
+    }
+
+    private void scrollTo() {
+        if(!isPageModel)return;
+        recyclerView.post(new Runnable() {
+            @Override
+            public void run() {
+                String num= TextUtils.isEmpty(etPageNum.getText().toString().trim()) ? "0" : etPageNum.getText().toString().trim();
+                vLinearLayoutManager.scrollToPositionWithOffset(0, -Integer.valueOf(num));
+
+            }
+        });
+    }
+
+    private void scrollBy() {
+        if(!isPageModel)return;
+        String num= TextUtils.isEmpty(etPageNum.getText().toString().trim()) ? "0" : etPageNum.getText().toString().trim();
+        scrollBy=Integer.valueOf(num);
+        recyclerView.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mAnimator == null) {
+                    mAnimator = ValueAnimator.ofInt(0, 1);
+                    mAnimator.setDuration(300);
+                    mAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                        @Override
+                        public void onAnimationUpdate(ValueAnimator animation) {
+                            //获取动画完成比例值
+                            float fraction = mAnimator.getAnimatedFraction();
+                            int scroll = (int) (scrollBy * (fraction - lastFraction));
+                            //根据比例值对目标view进行滑动
+                            recyclerView.scrollBy(0,scroll);
+                            lastFraction=fraction;
+                        }
+                    });
+
+                    mAnimator.addListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            if(scrollHelper!=null){
+                                scrollHelper.updateLayoutManger();
+                            }
+                            lastFraction=0;
+                        }
+                    });
+                } else {
+                    mAnimator.cancel();
+                    mAnimator.setIntValues(0, 1);
+                }
+                mAnimator.start();
+            }
+        });
     }
 }
